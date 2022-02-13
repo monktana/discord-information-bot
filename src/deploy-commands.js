@@ -1,14 +1,14 @@
-const fs = require('fs');
-const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v9');
+import { readdirSync } from 'fs';
+import { REST } from '@discordjs/rest';
+import { Routes } from 'discord-api-types/v9';
 
 const commands = [];
-const commandFiles = fs.readdirSync('./src/commands').filter(file => file.endsWith('.js'));
+const commandFiles = readdirSync('./src/commands').filter(file => file.endsWith('.js'));
 
-for (const file of commandFiles) {
-	const command = require(`./commands/${file}`);
+await Promise.all(commandFiles.map(async (file) => {
+	const command = await import(`./commands/${file}`);
 	commands.push(command.data.toJSON());
-}
+}));
 
 const rest = new REST({ version: process.env.DISCORD_API_VERSION }).setToken(process.env.DISCORD_TOKEN);
 

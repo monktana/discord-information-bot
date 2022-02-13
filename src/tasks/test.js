@@ -1,6 +1,7 @@
-const { MessageEmbed, WebhookClient } = require('discord.js');
-const moment = require('moment');
-const {load} = require('cheerio');
+import { MessageEmbed, WebhookClient } from 'discord.js';
+import got from 'got';
+import moment from 'moment';
+import { load } from 'cheerio';
 
 (async () => {
   const today = moment().startOf('day');
@@ -31,7 +32,6 @@ const {load} = require('cheerio');
 })();
 
 async function getRunsOf(day) {
-  const {got} = await import('got');
   const headers = {Cookie: "timezone=UTC"};
   const response = await got.get("https://schedule.hololive.tv/lives/english", {headers}).text();
   
