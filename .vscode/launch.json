@@ -1,0 +1,26 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "Launch Bot",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}\\dist\\index.js",
+      "preLaunchTask": "tsc: build - tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js"
+      ],
+      "env": {
+        "DISCORD_API_VERSION":"9",
+        "DISCORD_TOKEN":"OTQyMzc5ODExNzQ4MzE5Mjgy.Ygjplw.B3s4QEtWgBFbUAfof52G4pfvvEc",
+        "CLIENT":"942379811748319282",
+        "GUILD":"144139285283471361",
+        "WEBHOOK_ID":"942390169317802005",
+        "WEBHOOK_TOKEN":"CDnItu8-zD7RcfzUIMub8blhxUvGi7FhRyb4IWlTfRlM8xuCprW5H0KYHVm8oTBECt8G",
+      }
+    }
+  ]
+}

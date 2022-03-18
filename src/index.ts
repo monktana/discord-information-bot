@@ -4,14 +4,14 @@ import { Client, Collection, Intents } from 'discord.js';
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
 client.commands = new Collection();
-const commandFiles = readdirSync('./src/commands').filter(file => file.endsWith('.js'));
+const commandFiles = readdirSync('./dist/commands').filter(file => file.endsWith('.js'));
 
 await Promise.all(commandFiles.map(async (file) => {
 	const command = await import(`./commands/${file}`);
 	client.commands.set(command.data.name, command);
 }));
 
-const eventFiles = readdirSync('./src/events').filter(file => file.endsWith('.js'));
+const eventFiles = readdirSync('./dist/events').filter(file => file.endsWith('.js'));
 
 await Promise.all(eventFiles.map(async (file) => {
 	const event = await import(`./events/${file}`);
