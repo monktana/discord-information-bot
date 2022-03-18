@@ -1,0 +1,28 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "Launch Bot",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}\\src\\index.js",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js"
+      ],
+      "env": {
+        "DISCORD_API_VERSION": "",
+        "DISCORD_TOKEN": "",
+        "CLIENT": "",
+        "GUILD": "",
+        "WEBHOOK_ID": "942390169317802005",
+        "WEBHOOK_TOKEN": "CDnItu8-zD7RcfzUIMub8blhxUvGi7FhRyb4IWlTfRlM8xuCprW5H0KYHVm8oTBECt8G"
+      }
+    }
+  ]
+}

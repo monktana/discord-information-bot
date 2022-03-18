@@ -1,43 +1,73 @@
-import { MessageEmbed, WebhookClient } from 'discord.js';
 import got from 'got';
 import moment from 'moment';
 import { load } from 'cheerio';
+import redis from "redis";
 
-(async () => {
-  const today = moment().startOf('day');
-  const embeds = [];
-  const runs = await getRunsOf(today);
-  Object.entries(runs).forEach(entry => {
-    const [vtuber, runs] = entry;
-    runs.forEach((run, index) => {
-      const embed = new MessageEmbed()
-        .setColor(run.isLive ? '#f00a2c' : '#bab8b9')
-        .setTitle(run.title)
-        .setURL(run.link)
-        .setAuthor({ name: vtuber, iconURL: run.icon})
-        .addField('run starts at', moment(run.date).format('HH:mm'), true)
-        .setImage(run.thumbnail)
-        .setTimestamp()
-      embeds.push(embed);
-    })
+await updateSchedule();
+
+async function updateSchedule() {
+  const client = redis.createClient();
+  client.connect();
+
+  const streams = await getStreams();
+
+  const promises = streams.map(async (stream) => {
+    const cachedStream = await client.json.get(stream.link, '.');
+
+    if (!cachedStream) {
+      client.json.set(stream.link, '.', stream);
+      console.log(`New Stream: ${stream.name}, ${stream.date.format("DD MM YYYY hh:mm:ss")}, ${stream.title}`)
+      return
+    }
+
+    if (!streamHasChanges(cachedStream, stream)) {
+      return
+    }
+
+    //todo: send message about changed stream
+    client.json.set(stream.link, '.', stream);
   })
-  
-  const webhookClient = new WebhookClient({ id: process.env.WEBHOOK_ID, token: process.env.WEBHOOK_TOKEN});
-  webhookClient.send({
-    content: 'Todays schedule',
-    username: 'Hololiver',
-    avatarURL: 'https://i.imgur.com/AfFp7pu.png',
-    embeds: embeds,
-  });
-})();
 
-async function getRunsOf(day) {
-  const headers = {Cookie: "timezone=UTC"};
+  await Promise.all(promises);
+
+  client.quit();
+  console.log("done");
+}
+
+function sendNotification() {
+  // const embed = new MessageEmbed()
+  //   .setColor(stream.isLive ? '#f00a2c' : '#bab8b9')
+  //   .setTitle(stream.title)
+  //   .setURL(stream.link)
+  //   .setAuthor({ name: vtuber, iconURL: stream.icon})
+  //   .addField('run starts at', moment(stream.date).format('HH:mm'), true)
+  //   .setImage(stream.thumbnail)
+  //   .setTimestamp()
+  // embeds.push(embed);
+
+  // const webhookClient = new WebhookClient({ id: process.env.WEBHOOK_ID, token: process.env.WEBHOOK_TOKEN});
+  // webhookClient.send({
+  //   content: 'Todays schedule',
+  //   username: 'Hololiver',
+  //   avatarURL: 'https://i.imgur.com/AfFp7pu.png',
+  //   embeds: embeds,
+  // });
+}
+
+function streamHasChanges(cached, stream) {
+  return !stream.date.isSame(moment(cached.date)) ||
+          stream.title !== cached.title ||
+          stream.thumbnail !== cached.thumbnail ||
+          stream.icon !== cached.icon
+}
+
+async function getStreams() {
+  const headers = { Cookie: "timezone=UTC" };
   const response = await got.get("https://schedule.hololive.tv/lives/english", {headers}).text();
   
   const $ = load(response);
   const streamLinks = $('a[href*="youtube.com"]').toArray();
-  const runs = {}
+  const streams = []
 
   await Promise.all(streamLinks.map(async (element) => {
     const $element = $(element);
@@ -52,10 +82,6 @@ async function getRunsOf(day) {
     const dateString = `${moment().year()}-${streamDay.replace("/","-")} ${startTime}:00Z`;
     const date = moment(dateString)
 
-    if (!date.clone().startOf('day').isSame(day)) {
-      return Promise.resolve();
-    }
-
     const link = $element.attr("href");
     const style = $element.attr("style");
     const isLive = /border:.*red/.test(style);
@@ -67,15 +93,10 @@ async function getRunsOf(day) {
     const $yt = load(streamPage);
     const title = $yt("title").text().replace(" - YouTube", "").trim();
     
-    const data = {date,isLive,title,link,thumbnail,icon};
-    
-    if (!runs[name]) {
-      runs[name] = [];
-    }
-
-    runs[name].push(data);
+    const data = {name,date,isLive,title,link,thumbnail,icon};
+    streams.push(data);
 
   }));
 
-  return runs;
+  return streams;
 }
