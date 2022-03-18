@@ -1,6 +1,6 @@
 export const name = 'interactionCreate';
 export const once = false;
-export async function execute(interaction: any) {
+export async function execute(interaction) {
 	if (!interaction.isCommand())
 		return;
 

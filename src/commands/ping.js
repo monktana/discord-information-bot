@@ -4,6 +4,6 @@ export const data = new SlashCommandBuilder()
   .setName('ping')
   .setDescription('test command');
 
-export async function execute(interaction: any) {
+export async function execute(interaction) {
   await interaction.reply('pong!');
 }
