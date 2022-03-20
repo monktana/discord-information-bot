@@ -13,12 +13,12 @@ export default class ScheduleUpdateService {
     date: {
       priority: 10,
       compare: (current, cached) => current.date.isSame(cached.date),
-      handle: this.#sendTextNotification,
+      handle: this.sendTextNotification,
     },
     isLive: {
       priority: 1,
       compare: (current, cached) => current.isLive !== cached.isLive,
-      handle: this.#sendEmbedNotification,
+      handle: this.sendEmbedNotification,
     },
     title: {
       priority: 40,
@@ -44,9 +44,6 @@ export default class ScheduleUpdateService {
 
   constructor(dependencies) {
     this.dependencies = dependencies;
-
-    this.#sendTextNotification.bind(this)
-    this.#sendEmbedNotification.bind(this)
   }
 
   async update() {
@@ -58,16 +55,14 @@ export default class ScheduleUpdateService {
       const cachedStream = await this.dependencies.client.json.get(stream.link, '.');
 
       if (!cachedStream) {
-        console.log('new stream')
         this.dependencies.client.json.set(stream.link, '.', stream);
         return
       }
 
       cachedStream.date = moment(cachedStream.date)
 
-      let changes = this.#streamHasChanges(cachedStream, stream)
+      let changes = this.streamHasChanges(cachedStream, stream)
       if (!changes) {
-        console.log('no changes')
         return
       }
 
@@ -79,21 +74,21 @@ export default class ScheduleUpdateService {
 
     await Promise.all(promises);
 
-    this.#sendNotifications(changedStreams);
+    this.sendNotifications(changedStreams);
   }
 
-  #streamHasChanges(cached, stream) {
+  streamHasChanges(cached, stream) {
     return Object.keys(this.#NOTIFICATIONS).filter(key => this.#NOTIFICATIONS[key].compare(stream, cached));
   }
 
-  #sendNotifications(updates) {
+  sendNotifications(updates) {
     updates.forEach(update => {
       const change = update.changes[0]
-      this.#NOTIFICATIONS[change].handle(update.stream)
+      this.#NOTIFICATIONS[change].handle.call(this, update.stream)
     });
   }
 
-  #sendTextNotification(stream) {
+  sendTextNotification(stream) {
     this.dependencies.webhookClient.send({
       content: `UPDATE: ${stream.title} (${stream.name}) will go live at ${stream.date.format('DD MM YYYY hh:mm:ss')}`,
       username: 'Hololiver',
@@ -101,7 +96,7 @@ export default class ScheduleUpdateService {
     });
   }
 
-  #sendEmbedNotification(stream) { 
+  sendEmbedNotification(stream) { 
     const embed = new MessageEmbed()
                       .setColor(stream.isLive ? '#f00a2c' : '#bab8b9')
                       .setTitle(stream.title)
