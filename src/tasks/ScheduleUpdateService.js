@@ -4,7 +4,7 @@ import { load } from 'cheerio';
 import moment from 'moment';
 
 export default class ScheduleUpdateService {
-  #NOTIFICATIONS = {
+  NOTIFICATIONS = {
     name: {
       priority: 50,
       compare: (current, cached) => current.name !== cached.name,
