@@ -50,13 +50,16 @@ export class ScheduleUpdateService {
       const cachedStream = await this.dependencies.redis.json.get(stream.link, '.');
 
       if (!cachedStream) {
+        this.dependencies.logger.info('New stream', {stream});
         this.dependencies.redis.json.set(stream.link, '.', stream);
+
         return
       }
 
       cachedStream.date = moment(cachedStream.date)
       let changes = this.streamHasChanges(cachedStream, stream)
       if (changes.length === 0) {
+        this.dependencies.logger.info('No changed detected', {old: cachedStream, new: stream});
         return
       }
 
@@ -64,6 +67,7 @@ export class ScheduleUpdateService {
       const type = NOTIFICATIONS[changes[0]].type
 
       changedStreams.push({stream, changes, type})
+      this.dependencies.logger.info('Properties of a stream changed', {old: cachedStream, new: stream, changes});
 
       this.dependencies.redis.json.set(stream.link, '.', stream);
     })
