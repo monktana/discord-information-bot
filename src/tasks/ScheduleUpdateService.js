@@ -1,5 +1,4 @@
 import { MessageEmbed } from "discord.js";
-import { WebhookClient } from "discord.js";
 import got from 'got';
 import { load } from 'cheerio';
 import moment from 'moment';
@@ -16,24 +15,22 @@ const NOTIFICATION_PRIORITY = Object.freeze({
 })
 
 const NOTIFICATIONS = {
-  name: {
-    type: NOTIFICATION_TYPES.TEXT,
-    priority: NOTIFICATION_PRIORITY.LOW,
-    compare: (current, cached) => current.name !== cached.name,
-  },
   date: {
     type: NOTIFICATION_TYPES.TEXT,
     priority: NOTIFICATION_PRIORITY.MEDIUM,
+    message: 'The stream now starts at: #1',
     compare: (current, cached) => !current.date.isSame(cached.date),
   },
   isLive: {
     type: NOTIFICATION_TYPES.EMBED,
     priority: NOTIFICATION_PRIORITY.HIGH,
+    message: 'The stream just went #1',
     compare: (current, cached) => current.isLive !== cached.isLive,
   },
   title: {
     type: NOTIFICATION_TYPES.TEXT,
     priority: NOTIFICATION_PRIORITY.MEDIUM,
+    message: 'The stream is now titled as: #1',
     compare: (current, cached) => current.title !== cached.title,
   }
 }
@@ -82,8 +79,8 @@ export class ScheduleUpdateService {
 }
 
 export class DiscordNotificationService {
-  constructor(options) {
-    this.webhook = new WebhookClient({ id: options.id, token: options.token});
+  constructor(dependencies) {
+    this.dependencies = dependencies;
   }
   
   sendNotifications(notifications) {
@@ -99,26 +96,36 @@ export class DiscordNotificationService {
   }
 
   sendTextNotification(notification) {
-    this.webhook.send({
-      content: `UPDATE: ${notification.stream.title} (${notification.stream.name}) will go live at ${notification.stream.date.format('DD MM YYYY hh:mm:ss')}`,
-      username: 'Hololiver',
+    const {stream, changes} = notification
+    let message = `UPDATE: One of ${stream.name}'s streams changed:`
+
+    changes.forEach(change => {
+      message += `\n ${(NOTIFICATIONS[change].message).replace('#1', stream[change])}`
+    });
+
+    this.dependencies.webhook.send({
+      content: message,
+      username: 'Holo-man',
       avatarURL: 'https://i.imgur.com/AfFp7pu.png'
     });
   }
   
   sendEmbedNotification(notification) {
+    const {stream} = notification
+    let statusMessage = stream.isLive ? 'Live' : 'Offline'
+
     const embed = new MessageEmbed()
-        .setColor(notification.stream.isLive ? '#f00a2c' : '#bab8b9')
-        .setTitle(notification.stream.title)
-        .setURL(notification.stream.link)
-        .setAuthor({ name: vtuber, iconURL: notification.stream.icon})
-        .addField('Status', notification.stream.isLive ? 'Live' : 'Finished')
-        .setImage(notification.stream.thumbnail)
+        .setColor(stream.isLive ? '#f00a2c' : '#bab8b9')
+        .setTitle(stream.title)
+        .setURL(stream.link)
+        .setAuthor({ name: stream.name, iconURL: stream.icon})
+        .addField('Status', NOTIFICATIONS.isLive.message.replace('#1', statusMessage))
+        .setImage(stream.thumbnail)
         .setTimestamp()
 
-    this.webhook.send({
-      content: 'The status of a stream changed',
-      username: 'Hololiver',
+    this.dependencies.webhook.send({
+      content: `${stream.name}'s stream just went ${statusMessage}`,
+      username: 'Holo-man',
       avatarURL: 'https://i.imgur.com/AfFp7pu.png',
       embeds: [embed],
     });
