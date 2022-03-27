@@ -9,17 +9,47 @@ const FIXTURE_PATH = `${__dirname}/fixture`;
 
 const scheduleService = new ScheduleService();
 const schedule = JSON.parse(fs.readFileSync(`${FIXTURE_PATH}/expectedSchedule.json`));
+const streamDays = JSON.parse(fs.readFileSync(`${FIXTURE_PATH}/expectedStreamDays.json`));
+
+describe("step one", () => {
+  it("generates the expected stream day information", () => {
+    const html = fs.readFileSync(`${FIXTURE_PATH}/withoutCarousel.html`);
+    const days = scheduleService.stepOne(html);
+
+    expect(days).toStrictEqual(streamDays);
+  });
+
+  it("generates the expected stream day information with carousel", () => {
+    const html = fs.readFileSync(`${FIXTURE_PATH}/withCarousel.html`);
+    const days = scheduleService.stepOne(html);
+
+    expect(days).toStrictEqual(streamDays);
+  });
+});
+
+describe("step two", () => {
+  const html = fs.readFileSync(`${FIXTURE_PATH}/withCarousel.html`);
+  const streamDays = scheduleService.stepOne(html);
+
+  it("generates the expected stream information", () => {
+    const html = fs.readFileSync(`${FIXTURE_PATH}/withCarousel.html`);
+    const streams = scheduleService.stepTwo(streamDays);
+
+    expect(streams).toStrictEqual(schedule);
+  });
+});
+
 
 describe("schedule parsing", () => {
   it("generates the expected stream information", () => {
-    const html = fs.readFileSync(`${FIXTURE_PATH}/withCarousel.html`);
+    const html = fs.readFileSync(`${FIXTURE_PATH}/withoutCarousel.html`);
     const streams = scheduleService.parseScheduleToJson(html);
 
     expect(streams).toStrictEqual(schedule);
   });
 
   it("generates the expected stream information with carousel", () => {
-    const html = fs.readFileSync(`${FIXTURE_PATH}/withoutCarousel.html`);
+    const html = fs.readFileSync(`${FIXTURE_PATH}/withCarousel.html`);
     const streams = scheduleService.parseScheduleToJson(html);
 
     expect(streams).toStrictEqual(schedule);

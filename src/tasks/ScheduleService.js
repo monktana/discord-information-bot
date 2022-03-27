@@ -3,6 +3,36 @@ import moment from 'moment';
 import got from 'got';
 
 export class ScheduleService {
+
+  stepOne(html) {
+    const $ = load(html);
+
+    const streamDays = $('div.holodule.navbar-text').toArray();
+    if (streamDays.length !== 3) {
+      throw new Error('unexpected amount of date elements. selector might have changed.');
+    }
+
+    const days = streamDays.map((element) => {
+      const $element = $(element);
+      const dayString = $element.text().trim().substring(0, 5);
+      const [months, days] = dayString.split('/');
+      const day = moment.utc({months, days}).toISOString();
+
+      const firstStream = $element.closest('div.row').find('a[href*="youtube.com/watch"]').first().attr('href');
+
+      return {
+        day,
+        firstStream
+      }
+    });
+
+    return days;
+  }
+
+  stepTwo(streamDays, html) {
+
+  }
+
   parseScheduleToJson(html) {
     const $ = load(html);
 
