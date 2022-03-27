@@ -7,7 +7,7 @@
   "scripts": {
     "boot": "node -r dotenv/config .",
     "deploy-commands": "node -r dotenv/config src/deploy-commands.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +21,7 @@
     "dotenv": "^16.0.0",
     "eslint-config-airbnb": "^19.0.4",
     "got": "^12.0.1",
+    "jest": "^27.5.1",
     "moment": "^2.29.1",
     "redis": "^4.0.4",
     "winston": "^3.6.0"
