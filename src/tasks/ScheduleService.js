@@ -4,8 +4,15 @@ import got from 'got';
 
 export class ScheduleService {
 
-  stepOne(html) {
+  processContext = {}
+
+  parseHTMLToJson(html) {
     const $ = load(html);
+
+    const streamLinks = $('a[href*="youtube.com/watch"]').toArray();
+    if (streamLinks.length === 0) {
+      throw new Error('no streams found. selector might have changed.');
+    }
 
     const streamDays = $('div.holodule.navbar-text').toArray();
     if (streamDays.length !== 3) {
@@ -15,8 +22,8 @@ export class ScheduleService {
     const days = streamDays.map((element) => {
       const $element = $(element);
       const dayString = $element.text().trim().substring(0, 5);
-      const [months, days] = dayString.split('/');
-      const day = moment.utc({months, days}).toISOString();
+      const [months, days] = dayString.split('/').map(value => Number(value));
+      const day = moment.utc({months: (months-1), days}).toISOString();
 
       const firstStream = $element.closest('div.row').find('a[href*="youtube.com/watch"]').first().attr('href');
 
@@ -26,10 +33,46 @@ export class ScheduleService {
       }
     });
 
-    return days;
+    this.processContext.days = days;
+
+    const streams = streamLinks.map((element) => {
+      const $element = $(element);
+
+      const link = $element.attr('href');
+      const style = $element.attr('style');
+      const isLive = /border:.*red/.test(style);
+      const time = $element.find('div.datetime').text().trim();
+      const name = $element.find('div.name').text().trim();
+      const thumbnail = $element.find('img[src*="img.youtube.com"]').attr('src');
+      const icon = $element.find('img[src*="yt3.ggpht.com"]').attr('src');
+
+      return {
+        name, isLive, link, thumbnail, icon, time
+      };
+    })
+
+    return streams;
   }
 
-  stepTwo(streamDays, html) {
+  addStreamDate(streams) {
+    return streams.map(stream => {
+      if (stream.link === this.processContext.days[0].firstStream) {
+        this.processContext.currentDay = this.processContext.days.shift()
+      }
+      
+      const [hours, minutes] = stream.time.split(':').map(value => Number(value));
+      stream.date = moment(this.processContext.currentDay.day);
+      stream.date.add(hours, 'h');
+      stream.date.add(minutes, 'm');
+      stream.date = stream.date.toISOString();
+
+      delete stream.time;
+
+      return stream
+    });
+  }
+
+  addTitle(stream) {
 
   }
 
