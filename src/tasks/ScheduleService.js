@@ -72,8 +72,16 @@ export class ScheduleService {
     });
   }
 
-  addTitle(stream) {
+  async addTitle(streams) {
+    return await Promise.all(streams.map(async (stream) => {
+      const youtubeContent = await got.get(stream.link)
+      const $ = load(youtubeContent.body);
+      const title = $("title").text().replace(" - YouTube", "").trim();
 
+      stream.title = title;
+
+      return stream
+    }))
   }
 
   parseScheduleToJson(html) {
