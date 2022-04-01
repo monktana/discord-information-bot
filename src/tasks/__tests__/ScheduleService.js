@@ -49,3 +49,30 @@ describe("add title information to stream(s)", () => {
     expect(streamsWithTitles).toStrictEqual(fixture);
   });
 });
+
+describe("complete parsing chain", () => {
+  const html = fs.readFileSync(`${FIXTURE_PATH}/withoutCarousel.html`);
+  const fixture = JSON.parse(fs.readFileSync(`${FIXTURE_PATH}/expectedStreams.json`));
+
+  let service;
+  let baseStreams;
+
+  beforeEach(() => {
+    service = new ScheduleService();
+    baseStreams = scheduleService.parseHTMLToJson(html);
+  })
+
+  it("generates the expected stream information by adding date first", async () => {
+    let streams = scheduleService.addStreamDate(baseStreams);
+    streams = await scheduleService.addTitle(streams);
+
+    expect(streams).toStrictEqual(fixture);
+  });
+
+  it("generates the expected stream information by adding title first", async () => {
+    let streams = await scheduleService.addTitle(baseStreams);
+    streams = scheduleService.addStreamDate(streams);
+
+    expect(streams).toStrictEqual(fixture);
+  });
+});
