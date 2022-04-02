@@ -1,5 +1,5 @@
 import fs from "fs";
-import { ScheduleService } from "../ScheduleService.js";
+import { ParseHTMLToJson, AddStreamDate, AddTitle } from "../ScheduleService.js";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -7,46 +7,91 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const FIXTURE_PATH = `${__dirname}/fixture`;
 
-const scheduleService = new ScheduleService();
-
 describe("parse schedule HTML to basic JSON", () => {
   const fixture = JSON.parse(fs.readFileSync(`${FIXTURE_PATH}/rawStreams.json`));
   const streamDays = JSON.parse(fs.readFileSync(`${FIXTURE_PATH}/streamDays.json`));
 
-  it("generates the expected stream information", () => {
+  it("generates the expected stream information", async () => {
     const html = fs.readFileSync(`${FIXTURE_PATH}/withoutCarousel.html`);
-    const streams = scheduleService.parseHTMLToJson(html);
+    
+    const steps = [];
+    steps.push(new ParseHTMLToJson());
 
-    expect(streams).toStrictEqual(fixture);
-    expect(scheduleService.processContext.days).toStrictEqual(streamDays);
+    let currentObjectQueue = [html];
+    for (let index = 0; index < steps.length; index++) {
+      const step = steps[index];
+      currentObjectQueue = await Promise.all(currentObjectQueue.map(step.process.bind(step)));
+      currentObjectQueue = currentObjectQueue.flat();
+    }
+
+    expect(currentObjectQueue).toStrictEqual(fixture);
+    expect(steps[0].days).toStrictEqual(streamDays);
   });
 
-  it("generates the expected stream information with carousel", () => {
+  it("generates the expected stream information with carousel", async () => {
     const html = fs.readFileSync(`${FIXTURE_PATH}/withCarousel.html`);
-    const streams = scheduleService.parseHTMLToJson(html);
+    
+    const steps = [];
+    steps.push(new ParseHTMLToJson());
 
-    expect(streams).toStrictEqual(fixture);
-    expect(scheduleService.processContext.days).toStrictEqual(streamDays);
+    let currentObjectQueue = [html];
+    for (let index = 0; index < steps.length; index++) {
+      const step = steps[index];
+      currentObjectQueue = await Promise.all(currentObjectQueue.map(step.process.bind(step)));
+      currentObjectQueue = currentObjectQueue.flat();
+    }
+
+    expect(currentObjectQueue).toStrictEqual(fixture);
+    expect(steps[0].days).toStrictEqual(streamDays);
   });
 });
 
 describe("add day information to stream(s)", () => {
-  const baseStreams = JSON.parse(fs.readFileSync(`${FIXTURE_PATH}/rawStreams.json`));
+  const html = fs.readFileSync(`${FIXTURE_PATH}/withoutCarousel.html`);
   const fixture = JSON.parse(fs.readFileSync(`${FIXTURE_PATH}/streamsWithDates.json`));
 
-  it("generates the expected stream information", () => {
-    const streamsWithDates = scheduleService.addStreamDate(baseStreams);
-    expect(streamsWithDates).toStrictEqual(fixture);
+  it("generates the expected stream information", async () => {
+    const steps = [];
+    const parseHTMLToJson = new ParseHTMLToJson();
+  
+    const addStreamDate = new AddStreamDate();
+    addStreamDate.useContext(parseHTMLToJson);
+
+    steps.push(parseHTMLToJson);
+    steps.push(addStreamDate)
+  
+    let currentObjectQueue = [html];
+    for (let index = 0; index < steps.length; index++) {
+      const step = steps[index];
+      currentObjectQueue = await Promise.all(currentObjectQueue.map(step.process.bind(step)));
+      currentObjectQueue = currentObjectQueue.flat();
+    }
+  
+    expect(currentObjectQueue).toStrictEqual(fixture);
   });
 });
 
 describe("add title information to stream(s)", () => {
-  const baseStreams = JSON.parse(fs.readFileSync(`${FIXTURE_PATH}/rawStreams.json`));
+  const html = fs.readFileSync(`${FIXTURE_PATH}/withoutCarousel.html`);
   const fixture = JSON.parse(fs.readFileSync(`${FIXTURE_PATH}/streamsWithTitles.json`));
 
   it("generates the expected stream information", async () => {
-    const streamsWithTitles = await scheduleService.addTitle(baseStreams);
-    expect(streamsWithTitles).toStrictEqual(fixture);
+    const steps = [];
+
+    const parseHTMLToJson = new ParseHTMLToJson();
+    const addTitle = new AddTitle();
+
+    steps.push(parseHTMLToJson);
+    steps.push(addTitle)
+  
+    let currentObjectQueue = [html];
+    for (let index = 0; index < steps.length; index++) {
+      const step = steps[index];
+      currentObjectQueue = await Promise.all(currentObjectQueue.map(step.process.bind(step)));
+      currentObjectQueue = currentObjectQueue.flat();
+    }
+  
+    expect(currentObjectQueue).toStrictEqual(fixture);
   });
 });
 
@@ -54,25 +99,47 @@ describe("complete parsing chain", () => {
   const html = fs.readFileSync(`${FIXTURE_PATH}/withoutCarousel.html`);
   const fixture = JSON.parse(fs.readFileSync(`${FIXTURE_PATH}/expectedStreams.json`));
 
-  let service;
-  let baseStreams;
-
-  beforeEach(() => {
-    service = new ScheduleService();
-    baseStreams = scheduleService.parseHTMLToJson(html);
-  })
-
   it("generates the expected stream information by adding date first", async () => {
-    let streams = scheduleService.addStreamDate(baseStreams);
-    streams = await scheduleService.addTitle(streams);
+    const steps = [];
 
-    expect(streams).toStrictEqual(fixture);
+    const parseHTMLToJson = new ParseHTMLToJson();
+    const addStreamDate = new AddStreamDate();
+    addStreamDate.useContext(parseHTMLToJson);
+    const addTitle = new AddTitle();
+
+    steps.push(parseHTMLToJson);
+    steps.push(addStreamDate);
+    steps.push(addTitle)
+  
+    let currentObjectQueue = [html];
+    for (let index = 0; index < steps.length; index++) {
+      const step = steps[index];
+      currentObjectQueue = await Promise.all(currentObjectQueue.map(step.process.bind(step)));
+      currentObjectQueue = currentObjectQueue.flat();
+    }
+  
+    expect(currentObjectQueue).toStrictEqual(fixture);
   });
 
   it("generates the expected stream information by adding title first", async () => {
-    let streams = await scheduleService.addTitle(baseStreams);
-    streams = scheduleService.addStreamDate(streams);
+    const steps = [];
 
-    expect(streams).toStrictEqual(fixture);
+    const parseHTMLToJson = new ParseHTMLToJson();
+    const addStreamDate = new AddStreamDate();
+    addStreamDate.useContext(parseHTMLToJson);
+    const addTitle = new AddTitle();
+
+    steps.push(parseHTMLToJson);
+    steps.push(addTitle)
+    steps.push(addStreamDate);
+  
+    let currentObjectQueue = [html];
+    for (let index = 0; index < steps.length; index++) {
+      const step = steps[index];
+      currentObjectQueue = await Promise.all(currentObjectQueue.map(step.process.bind(step)));
+      currentObjectQueue = currentObjectQueue.flat();
+    }
+  
+    expect(currentObjectQueue).toStrictEqual(fixture);
   });
 });
