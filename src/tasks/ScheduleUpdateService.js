@@ -1,6 +1,7 @@
 import { MessageEmbed } from 'discord.js';
 import moment from 'moment';
-import { ScheduleService } from './ScheduleService.js';
+import got from 'got';
+import { ParseHTMLToJson, AddStreamDate, AddTitle } from './ScheduleService.js';
 
 const NOTIFICATION_TYPES = Object.freeze({
   EMBED: 1,
@@ -37,7 +38,6 @@ const NOTIFICATIONS = {
 export class ScheduleUpdateService {
   constructor(dependencies) {
     this.dependencies = dependencies;
-    this.scheduleService = new ScheduleService();
   }
 
   async update() {
