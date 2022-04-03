@@ -3,7 +3,7 @@ import moment from 'moment';
 export class AddStreamDate {
 
   async process(stream) {
-    if (stream.link === this.context.days[0].firstStream) {
+    if (stream.link === this.context.days[0]?.firstStream) {
       this.currentDay = this.context.days.shift()
     }
     

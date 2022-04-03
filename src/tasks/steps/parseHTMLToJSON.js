@@ -12,7 +12,7 @@ export class ParseHTMLToJson {
     }
   
     const streamDays = $('div.holodule.navbar-text').toArray();
-    if (streamDays.length !== 3) {
+    if (streamDays.length === 0) {
       throw new Error('unexpected amount of date elements. selector might have changed.');
     }
   

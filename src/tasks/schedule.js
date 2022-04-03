@@ -1,7 +1,8 @@
 import redis from "redis";
 import winston from "winston";
 import { WebhookClient } from "discord.js";
-import {ScheduleUpdateService, DiscordNotificationService} from "./ScheduleUpdateService.js";
+import { ScheduleUpdateService } from "./services/ScheduleUpdateService.js";
+import { DiscordNotificationService } from "./services/DiscordNotificationService.js";
 
 const client = redis.createClient()
 const webhook = new WebhookClient({ id: process.env.WEBHOOK_ID, token: process.env.WEBHOOK_TOKEN})

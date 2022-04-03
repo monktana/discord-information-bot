@@ -1,10 +1,10 @@
 
-const NOTIFICATION_TYPES = Object.freeze({
+export const NOTIFICATION_TYPES = Object.freeze({
   EMBED: 1,
   TEXT: 2,
 });
 
-const NOTIFICATION_PRIORITY = Object.freeze({
+export const NOTIFICATION_PRIORITY = Object.freeze({
   HIGH: 1,
   MEDIUM: 50,
   LOW: 100,
