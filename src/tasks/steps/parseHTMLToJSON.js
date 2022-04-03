@@ -1,7 +1,5 @@
 import { load } from 'cheerio';
 import moment from 'moment';
-import got from 'got';
-
 
 export class ParseHTMLToJson {
 
@@ -49,46 +47,6 @@ export class ParseHTMLToJson {
     })
   
     return this.streams;
-  }
-
-  useContext(context) {
-    this.context = context;
-  }
-}
-
-export class AddStreamDate {
-
-  async process(stream) {
-    if (stream.link === this.context.days[0].firstStream) {
-      this.currentDay = this.context.days.shift()
-    }
-    
-    const [hours, minutes] = stream.time.split(':').map(value => Number(value));
-    stream.date = moment(this.currentDay.day);
-    stream.date.add(hours, 'h');
-    stream.date.add(minutes, 'm');
-    stream.date = stream.date.toISOString();
-
-    delete stream.time;
-
-    return stream
-  }
-
-  useContext(context) {
-    this.context = context;
-  }
-}
-
-export class AddTitle {
-
-  async process(stream) {
-    const youtubeContent = await got.get(stream.link)
-    const $ = load(youtubeContent.body);
-    const title = $("title").text().replace(" - YouTube", "").trim();
-
-    stream.title = title;
-
-    return stream
   }
 
   useContext(context) {

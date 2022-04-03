@@ -1,6 +1,8 @@
 import fs from "fs";
 import nock from "nock";
-import { ParseHTMLToJson, AddStreamDate, AddTitle } from "../ScheduleService.js";
+import { ParseHTMLToJson } from "../steps/parseHTMLToJSON.js";
+import { AddStreamDate } from "../steps/addDate.js";
+import { AddTitle } from "../steps/addTitle.js";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
