@@ -1,8 +1,6 @@
 import fs from "fs";
 import nock from "nock";
-import * as Sentry from '@sentry/node';
-global.Sentry = Sentry
-jest.mock('@sentry/node');
+import { jest } from '@jest/globals';
 import { ParseHTMLToJson } from "../steps/parseHTMLToJSON.js";
 import { AddStreamDate } from "../steps/addDate.js";
 import { AddTitle } from "../steps/addTitle.js";
@@ -12,6 +10,8 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const FIXTURE_PATH = `${__dirname}/fixture`;
+
+jest.mock('@sentry/node');
 
 nock('https://www.youtube.com')
 .persist()
