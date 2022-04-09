@@ -1,9 +1,10 @@
 import got from 'got';
 import { load } from 'cheerio';
+import { ProcessStep } from './processStep.js';
 
-export class AddTitle {
+export class AddTitle extends ProcessStep {
 
-  async process(stream) {
+  async run(stream) {
     const youtubeContent = await got.get(stream.link)
     const $ = load(youtubeContent.body);
     const title = $("title").text().replace(" - YouTube", "").trim();
@@ -11,6 +12,10 @@ export class AddTitle {
     stream.title = title;
 
     return stream
+  }
+
+  extendScope(scope, input) {
+    scope.setContext('stream', input);
   }
 
   useContext(context) {

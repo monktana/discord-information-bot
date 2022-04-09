@@ -1,8 +1,9 @@
 import moment from 'moment';
+import { ProcessStep } from './processStep.js';
 
-export class AddStreamDate {
+export class AddStreamDate extends ProcessStep {
 
-  async process(stream) {
+  async run(stream) {
     if (stream.link === this.context.days[0]?.firstStream) {
       this.currentDay = this.context.days.shift()
     }
@@ -16,6 +17,10 @@ export class AddStreamDate {
     delete stream.time;
 
     return stream
+  }
+
+  extendScope(scope, input) {
+    scope.setContext('stream', input);
   }
 
   useContext(context) {

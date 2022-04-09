@@ -1,10 +1,19 @@
 import redis from "redis";
 import winston from "winston";
+import * as Sentry from '@sentry/node';
+import '@sentry/tracing';
 import { WebhookClient } from "discord.js";
 import { ScheduleUpdateService } from "./services/ScheduleUpdateService.js";
 import { DiscordNotificationService } from "./services/DiscordNotificationService.js";
 
 const client = redis.createClient()
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  tracesSampleRate: 1.0,
+  environment: process.env.NODE_ENV
+});
+
 const webhook = new WebhookClient({ id: process.env.WEBHOOK_ID, token: process.env.WEBHOOK_TOKEN})
 const logger = winston.createLogger({
   level: 'info',
@@ -21,15 +30,6 @@ const logger = winston.createLogger({
   ],
   exitOnError: false
 })
-
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.splat(),
-      winston.format.json()
-    )
-  }));
-}
 
 const scheduleService = new ScheduleUpdateService({ redis: client, logger })
 const discordNotificationService = new DiscordNotificationService({ webhook, logger })

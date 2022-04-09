@@ -1,9 +1,10 @@
 import { load } from 'cheerio';
 import moment from 'moment';
+import { ProcessStep } from './processStep.js';
 
-export class ParseHTMLToJson {
+export class ParseHTMLToJson extends ProcessStep {
 
-  async process(html) {
+  async run(html) {
     const $ = load(html);
 
     const streamLinks = $('a[href*="youtube.com/watch"]').toArray();
@@ -13,7 +14,7 @@ export class ParseHTMLToJson {
   
     const streamDays = $('div.holodule.navbar-text').toArray();
     if (streamDays.length === 0) {
-      throw new Error('unexpected amount of date elements. selector might have changed.');
+      throw new Error('no date elements founds. selector might have changed.');
     }
   
     this.days = streamDays.map((element) => {
