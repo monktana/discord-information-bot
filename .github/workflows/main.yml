@@ -1,0 +1,19 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        path: "app"
+    - run: "npm install"
+      working-directory: "app"
+    - run: "npm run test"
