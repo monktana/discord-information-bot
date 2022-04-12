@@ -1,22 +1,23 @@
 import moment from 'moment';
-import { ProcessStep } from './processStep.js';
+import ProcessStep from './processStep';
 
-export class AddStreamDate extends ProcessStep {
-
+export default class AddStreamDate extends ProcessStep {
   async run(stream) {
+    const streamWithDate = stream;
+
     if (stream.link === this.context.days[0]?.firstStream) {
-      this.currentDay = this.context.days.shift()
+      this.currentDay = this.context.days.shift();
     }
-    
-    const [hours, minutes] = stream.time.split(':').map(value => Number(value));
-    stream.date = moment(this.currentDay.day);
-    stream.date.add(hours, 'h');
-    stream.date.add(minutes, 'm');
-    stream.date = stream.date.toISOString();
 
-    delete stream.time;
+    const [hours, minutes] = stream.time.split(':').map((value) => Number(value));
+    streamWithDate.date = moment(this.currentDay.day);
+    streamWithDate.date.add(hours, 'h');
+    streamWithDate.date.add(minutes, 'm');
+    streamWithDate.date = streamWithDate.date.toISOString();
 
-    return stream
+    delete streamWithDate.time;
+
+    return streamWithDate;
   }
 
   extendScope(scope, input) {

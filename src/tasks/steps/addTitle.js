@@ -1,17 +1,18 @@
-import got from 'got';
+import { got } from 'got';
 import { load } from 'cheerio';
-import { ProcessStep } from './processStep.js';
+import ProcessStep from './processStep';
 
-export class AddTitle extends ProcessStep {
-
+export default class AddTitle extends ProcessStep {
   async run(stream) {
-    const youtubeContent = await got.get(stream.link)
+    const streamWithTitle = stream;
+
+    const youtubeContent = await got.get(stream.link);
     const $ = load(youtubeContent.body);
-    const title = $("title").text().replace(" - YouTube", "").trim();
+    const title = $('title').text().replace(' - YouTube', '').trim();
 
-    stream.title = title;
+    streamWithTitle.title = title;
 
-    return stream
+    return streamWithTitle;
   }
 
   extendScope(scope, input) {

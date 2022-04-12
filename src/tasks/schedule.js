@@ -3,8 +3,8 @@ import winston from "winston";
 import * as Sentry from '@sentry/node';
 import '@sentry/tracing';
 import { WebhookClient } from "discord.js";
-import { ScheduleUpdateService } from "./services/ScheduleUpdateService.js";
-import { DiscordNotificationService } from "./services/DiscordNotificationService.js";
+import ScheduleUpdateService from "./services/ScheduleUpdateService";
+import DiscordNotificationService from "./services/DiscordNotificationService";
 
 const client = redis.createClient()
 

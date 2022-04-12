@@ -1,9 +1,8 @@
 import { load } from 'cheerio';
 import moment from 'moment';
-import { ProcessStep } from './processStep.js';
+import ProcessStep from './processStep';
 
-export class ParseHTMLToJson extends ProcessStep {
-
+export default class ParseHTMLToJson extends ProcessStep {
   async run(html) {
     const $ = load(html);
 
@@ -11,29 +10,29 @@ export class ParseHTMLToJson extends ProcessStep {
     if (streamLinks.length === 0) {
       throw new Error('no streams found. selector might have changed.');
     }
-  
+
     const streamDays = $('div.holodule.navbar-text').toArray();
     if (streamDays.length === 0) {
       throw new Error('no date elements founds. selector might have changed.');
     }
-  
+
     this.days = streamDays.map((element) => {
       const $element = $(element);
       const dayString = $element.text().trim().substring(0, 5);
-      const [months, days] = dayString.split('/').map(value => Number(value));
-      const day = moment.utc({months: (months-1), days}).toISOString();
-  
+      const [months, days] = dayString.split('/').map((value) => Number(value));
+      const day = moment.utc({ months: (months - 1), days }).toISOString();
+
       const firstStream = $element.closest('div.row').find('a[href*="youtube.com/watch"]').first().attr('href');
-  
+
       return {
         day,
-        firstStream
-      }
+        firstStream,
+      };
     });
-  
+
     this.streams = streamLinks.map((element) => {
       const $element = $(element);
-  
+
       const link = $element.attr('href');
       const style = $element.attr('style');
       const isLive = /border:.*red/.test(style);
@@ -41,12 +40,12 @@ export class ParseHTMLToJson extends ProcessStep {
       const name = $element.find('div.name').text().trim();
       const thumbnail = $element.find('img[src*="img.youtube.com"]').attr('src');
       const icon = $element.find('img[src*="yt3.ggpht.com"]').attr('src');
-  
+
       return {
-        name, isLive, link, thumbnail, icon, time
+        name, isLive, link, thumbnail, icon, time,
       };
-    })
-  
+    });
+
     return this.streams;
   }
 

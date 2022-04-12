@@ -1,7 +1,7 @@
 import { MessageEmbed } from 'discord.js';
-import { NOTIFICATIONS, NOTIFICATION_TYPES } from "../notifications.js";
+import { NOTIFICATIONS, NOTIFICATION_TYPES } from '../notifications';
 
-export class DiscordNotificationService {
+export default class DiscordNotificationService {
   constructor(dependencies) {
     this.dependencies = dependencies;
   }

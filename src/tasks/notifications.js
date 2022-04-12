@@ -1,16 +1,15 @@
-
-export const NOTIFICATION_TYPES = Object.freeze({
+const NOTIFICATION_TYPES = Object.freeze({
   EMBED: 1,
   TEXT: 2,
 });
 
-export const NOTIFICATION_PRIORITY = Object.freeze({
+const NOTIFICATION_PRIORITY = Object.freeze({
   HIGH: 1,
   MEDIUM: 50,
   LOW: 100,
 });
 
-export const NOTIFICATIONS = {
+const NOTIFICATIONS = {
   date: {
     type: NOTIFICATION_TYPES.TEXT,
     priority: NOTIFICATION_PRIORITY.MEDIUM,
@@ -30,3 +29,5 @@ export const NOTIFICATIONS = {
     compare: (current, cached) => current.title !== cached.title,
   },
 };
+
+export { NOTIFICATIONS, NOTIFICATION_PRIORITY, NOTIFICATION_TYPES };

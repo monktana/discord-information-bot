@@ -1,48 +1,50 @@
 import moment from 'moment';
 import * as Sentry from '@sentry/node';
-import { got } from "got";
-import { NOTIFICATIONS } from "../notifications.js";
-import { ParseHTMLToJson } from '../steps/parseHTMLToJSON.js';
-import { AddTitle } from '../steps/addTitle.js';
-import { AddStreamDate } from '../steps/addDate.js';
+import got from 'got';
+import { NOTIFICATIONS } from '../notifications';
+import ParseHTMLToJson from '../steps/parseHTMLToJSON';
+import AddTitle from '../steps/addTitle';
+import AddStreamDate from '../steps/addDate';
 
-export class ScheduleUpdateService {
+export default class ScheduleUpdateService {
   constructor(dependencies) {
     this.dependencies = dependencies;
   }
 
   /**
-   * 
-   * @returns 
+   *
+   * @returns
    */
   async update() {
-    const scope = Sentry.getCurrentHub().pushScope();
-    scope.setTag('service', this.constructor.name);
+    const updateScope = Sentry.getCurrentHub().pushScope();
+    updateScope.setTag('service', this.constructor.name);
     const streams = await this.get();
     Sentry.getCurrentHub().popScope();
 
     this.dependencies.redis.connect();
 
-    const changedStreams = [];
-    for (const stream of streams) {
-      const scope = Sentry.getCurrentHub().pushScope();
-      scope.setTag('service', this.constructor.name);
-      scope.setContext('stream', stream);
-      const changes = await this.updateStream(stream);
-      Sentry.getCurrentHub().popScope();
+    const changes = [];
+    for (let index = 0; index < streams.length; index += 1) {
+      const stream = streams[index];
 
-      changedStreams.push(changes);
+      const streamScope = Sentry.getCurrentHub().pushScope();
+      streamScope.setTag('service', this.constructor.name);
+      streamScope.setContext('stream', stream);
+
+      changes.push(this.updateStream(stream));
+
+      Sentry.getCurrentHub().popScope();
     }
 
-    changedStreams.filter(Boolean);
+    const updates = await Promise.all(changes);
 
-    return changedStreams;
+    return updates.filter(Boolean);
   }
 
   /**
-   * 
-   * @param {*} stream 
-   * @returns 
+   *
+   * @param {*} stream
+   * @returns
    */
   async updateStream(stream) {
     const cachedStream = await this.dependencies.redis.json.get(stream.link, '.');
@@ -51,7 +53,7 @@ export class ScheduleUpdateService {
       this.dependencies.redis.json.set(stream.link, '.', stream);
       this.dependencies.logger.info('new stream', { stream });
 
-      return;
+      return null;
     }
 
     cachedStream.date = moment(cachedStream.date);
@@ -59,35 +61,35 @@ export class ScheduleUpdateService {
     let changes = this.streamHasChanges(cachedStream, stream);
     if (changes.length === 0) {
       this.dependencies.logger.info('no changed detected', { old: cachedStream, new: stream });
-      return;
+      return null;
     }
 
     this.dependencies.logger.info('properties of a stream changed', { old: cachedStream, new: stream, changes });
 
     changes = changes.sort((first, second) => NOTIFICATIONS[first].priority - NOTIFICATIONS[second].priority);
     const { type } = NOTIFICATIONS[changes[0]];
-    
+
     this.dependencies.redis.json.set(stream.link, '.', stream);
 
     return { stream, changes, type };
   }
 
   /**
-   * 
-   * @param {*} cached 
-   * @param {*} stream 
-   * @returns 
+   *
+   * @param {*} cached
+   * @param {*} stream
+   * @returns
    */
   streamHasChanges(cached, stream) {
     return Object.keys(NOTIFICATIONS).filter((key) => NOTIFICATIONS[key].compare(stream, cached));
   }
 
   /**
-   * 
-   * @returns 
+   *
+   * @returns
    */
   async get() {
-    const scheduleHTML = await got.get('https://schedule.hololive.tv/lives/english', { headers: { cookie: 'timezone=UTC' }}).text();
+    const scheduleHTML = await got.get('https://schedule.hololive.tv/lives/english', { headers: { cookie: 'timezone=UTC' } }).text();
 
     const parseHTMLToJSON = new ParseHTMLToJson();
     const áddDate = new AddStreamDate();
@@ -98,11 +100,12 @@ export class ScheduleUpdateService {
     steps.push(parseHTMLToJSON);
     steps.push(áddDate);
     steps.push(addTitle);
-  
+
     let currentObjectQueue = [scheduleHTML];
-    for (let index = 0; index < steps.length; index++) {
+    for (let index = 0; index < steps.length; index += 1) {
       const step = steps[index];
 
+      // eslint-disable-next-line no-await-in-loop -- currentObjectQueue is input for next iteration
       currentObjectQueue = await Promise.all(currentObjectQueue.map(step.process.bind(step)));
       currentObjectQueue = currentObjectQueue.flat();
     }
