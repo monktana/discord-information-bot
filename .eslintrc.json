@@ -2,12 +2,15 @@
 	"extends": [
 		"airbnb",
 		"eslint:recommended",
-		"plugin:import/recommended"
+		"plugin:import/recommended",
+		"plugin:jest/style"
 	],
 	"env": {
 		"node": true,
-		"es6": true
+		"es6": true,
+    "jest/globals": true
 	},
+  "plugins": ["jest"],
 	"parserOptions": {
 		"ecmaVersion": 2021,
 		"sourceType": "module"

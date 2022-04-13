@@ -25,6 +25,7 @@
     "dotenv": "^16.0.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-import-resolver-node": "^0.3.6",
+    "eslint-plugin-jest": "^26.1.4",
     "got": "^12.0.1",
     "jest": "^27.5.1",
     "moment": "^2.29.1",
