@@ -1,5 +1,5 @@
 import moment from 'moment';
-import ProcessStep from './processStep';
+import ProcessStep from './processStep.js';
 
 export default class AddStreamDate extends ProcessStep {
   async run(stream) {

@@ -1,10 +1,10 @@
 import moment from 'moment';
 import * as Sentry from '@sentry/node';
 import got from 'got';
-import { NOTIFICATIONS } from '../notifications';
-import ParseHTMLToJson from '../steps/parseHTMLToJSON';
-import AddTitle from '../steps/addTitle';
-import AddStreamDate from '../steps/addDate';
+import { NOTIFICATIONS } from '../notifications.js';
+import ParseHTMLToJson from '../steps/parseHTMLToJSON.js';
+import AddTitle from '../steps/addTitle.js';
+import AddStreamDate from '../steps/addDate.js';
 
 export default class ScheduleUpdateService {
   constructor(dependencies) {
@@ -47,28 +47,28 @@ export default class ScheduleUpdateService {
    * @returns
    */
   async updateStream(stream) {
-    const cachedStream = await this.dependencies.redis.json.get(stream.link, '.');
+    const newStream = stream;
+    const cachedStream = await this.dependencies.redis.json.get(newStream.link, '.');
 
     if (!cachedStream) {
-      this.dependencies.redis.json.set(stream.link, '.', stream);
+      this.dependencies.redis.json.set(newStream.link, '.', newStream);
       this.dependencies.logger.info('new stream', { stream });
 
       return null;
     }
 
     cachedStream.date = moment(cachedStream.date);
-    stream.date = moment(stream.date);
-    let changes = this.streamHasChanges(cachedStream, stream);
+    newStream.date = moment(newStream.date);
+    let changes = this.streamHasChanges(cachedStream, newStream);
     if (changes.length === 0) {
       this.dependencies.logger.info('no changed detected', { old: cachedStream, new: stream });
       return null;
     }
 
-    this.dependencies.logger.info('properties of a stream changed', { old: cachedStream, new: stream, changes });
-
     changes = changes.sort((first, second) => NOTIFICATIONS[first].priority - NOTIFICATIONS[second].priority);
     const { type } = NOTIFICATIONS[changes[0]];
 
+    this.dependencies.logger.info('properties of a stream changed', { old: cachedStream, new: stream, changes });
     this.dependencies.redis.json.set(stream.link, '.', stream);
 
     return { stream, changes, type };

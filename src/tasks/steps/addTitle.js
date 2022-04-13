@@ -1,6 +1,6 @@
 import { got } from 'got';
 import { load } from 'cheerio';
-import ProcessStep from './processStep';
+import ProcessStep from './processStep.js';
 
 export default class AddTitle extends ProcessStep {
   async run(stream) {

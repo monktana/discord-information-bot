@@ -1,6 +1,6 @@
 import { load } from 'cheerio';
 import moment from 'moment';
-import ProcessStep from './processStep';
+import ProcessStep from './processStep.js';
 
 export default class ParseHTMLToJson extends ProcessStep {
   async run(html) {

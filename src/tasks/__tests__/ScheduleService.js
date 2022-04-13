@@ -1,6 +1,6 @@
 import fs from 'fs';
 import nock from 'nock';
-import { jest } from '@jest/globals';
+import { jest } from '@jest/globals'; // eslint-disable-line import/no-extraneous-dependencies
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import ParseHTMLToJson from '../steps/parseHTMLToJSON';
@@ -9,9 +9,9 @@ import AddTitle from '../steps/addTitle';
 
 /* eslint-disable no-undef -- eslint can't handle jest methods (describe, it, expect) */
 
-const _filename = fileURLToPath(import.meta.url);
-const _dirname = dirname(_filename);
-const FIXTURE_PATH = `${_dirname}/fixture`;
+const filename = fileURLToPath(import.meta.url);
+const workdir = dirname(filename);
+const FIXTURE_PATH = `${workdir}/fixture`;
 
 jest.mock('@sentry/node');
 
