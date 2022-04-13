@@ -2,9 +2,7 @@ import moment from 'moment';
 import * as Sentry from '@sentry/node';
 import got from 'got';
 import { NOTIFICATIONS } from '../notifications.js';
-import ParseHTMLToJson from '../steps/parseHTMLToJSON.js';
-import AddTitle from '../steps/addTitle.js';
-import AddStreamDate from '../steps/addDate.js';
+import { ParseHTMLToJson, AddTitle, AddStreamDate } from '../steps/steps.js';
 
 export default class ScheduleUpdateService {
   constructor(dependencies) {

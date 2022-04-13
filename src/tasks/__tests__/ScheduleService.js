@@ -3,11 +3,7 @@ import nock from 'nock';
 import { jest } from '@jest/globals'; // eslint-disable-line import/no-extraneous-dependencies
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import ParseHTMLToJson from '../steps/parseHTMLToJSON';
-import AddStreamDate from '../steps/addDate';
-import AddTitle from '../steps/addTitle';
-
-/* eslint-disable no-undef -- eslint can't handle jest methods (describe, it, expect) */
+import { ParseHTMLToJson, AddTitle, AddStreamDate } from '../steps/steps.js';
 
 const filename = fileURLToPath(import.meta.url);
 const workdir = dirname(filename);
